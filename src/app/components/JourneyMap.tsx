@@ -59,6 +59,9 @@ const futureSummaryData = [
 
 // Label offset for future state step dots
 const LABEL_OFFSET = 32;
+const MOBILE_BREAKPOINT = 980;
+const MOBILE_MIN_MAP_HEIGHT = 980;
+const MOBILE_MAX_MAP_HEIGHT = 1280;
 
 // Reference width the path was designed for
 const BASE_WIDTH = 1280;
@@ -94,11 +97,53 @@ export function JourneyMap() {
   const [hoveredToggle, setHoveredToggle] = useState<'current' | 'future' | null>(null);
   const [pressedToggle, setPressedToggle] = useState<'current' | 'future' | null>(null);
   const [containerWidth, setContainerWidth] = useState(BASE_WIDTH);
+  const [viewportWidth, setViewportWidth] = useState(
+    typeof window !== 'undefined' ? window.innerWidth : BASE_WIDTH
+  );
   const roadRef = useRef<SVGPathElement>(null);
   const dashRef = useRef<SVGPathElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const scaleX = containerWidth / BASE_WIDTH;
+  const isMobileLayout = viewportWidth < MOBILE_BREAKPOINT;
+  const mobilePaddingX = Math.max(28, Math.min(56, containerWidth * 0.08));
+  const mobilePaddingY = 56;
+  const mobileMapHeight = Math.max(
+    MOBILE_MIN_MAP_HEIGHT,
+    Math.min(MOBILE_MAX_MAP_HEIGHT, viewportWidth * 1.25)
+  );
+  const mobileTrackWidth = Math.max(containerWidth - mobilePaddingX * 2, 220);
+  const mobileTrackHeight = mobileMapHeight - mobilePaddingY * 2;
+  const mobileRoadScaleX = mobileTrackWidth / SVG_HEIGHT;
+  const mobileRoadScaleY = mobileTrackHeight / BASE_WIDTH;
+  const labelOffset = isMobileLayout ? 44 : LABEL_OFFSET;
+  const summaryGap = isMobileLayout ? 18 : 30;
+
+  const getResponsiveSide = (defaultSide: 'above' | 'below' | 'left' | 'right', index: number) => {
+    if (!isMobileLayout) return defaultSide;
+    return index % 2 === 0 ? 'right' : 'left';
+  };
+
+  const getMarkerPosition = (pos: ComputedPoint) => {
+    if (!isMobileLayout) {
+      return {
+        x: pos.x * scaleX,
+        y: pos.y + VIEWBOX_Y_OFFSET,
+      };
+    }
+
+    return {
+      x: mobilePaddingX + (SVG_HEIGHT - (pos.y + VIEWBOX_Y_OFFSET)) * mobileRoadScaleX,
+      y: mobilePaddingY + pos.x * mobileRoadScaleY,
+    };
+  };
+
+  const getLabelStyle = (x: number, y: number, side: 'above' | 'below' | 'left' | 'right'): React.CSSProperties => (
+    side === 'above' ? { left: x, top: y - labelOffset, transform: 'translate(-50%, -100%)' } :
+    side === 'below' ? { left: x, top: y + labelOffset, transform: 'translate(-50%, 0)' } :
+    side === 'left' ? { left: x - labelOffset, top: y, transform: 'translate(-100%, -50%)' } :
+    { left: x + labelOffset, top: y, transform: 'translate(0, -50%)' }
+  );
 
   const handleToggle = (newState: JourneyState) => {
     if (newState === journeyState) return;
@@ -121,6 +166,13 @@ export function JourneyMap() {
     });
     ro.observe(el);
     return () => ro.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const updateViewportWidth = () => setViewportWidth(window.innerWidth);
+    updateViewportWidth();
+    window.addEventListener('resize', updateViewportWidth);
+    return () => window.removeEventListener('resize', updateViewportWidth);
   }, []);
 
   // Compute all positions from the path using getPointAtLength
@@ -201,12 +253,12 @@ export function JourneyMap() {
     <div className="bg-[#F2F1EF] min-h-screen flex flex-col overflow-x-hidden" style={{ fontFamily: 'Arial, sans-serif' }}>
       {/* Header */}
       <div className="bg-white border-b border-[#e8e8e8] shrink-0">
-        <div className="flex items-center justify-between px-[85px] py-[24px]">
+        <div className="flex flex-col gap-[18px] px-[24px] py-[24px] md:px-[40px] lg:flex-row lg:items-center lg:justify-between lg:px-[85px]">
           <div className="flex items-center gap-[16px]">
             <div className="h-[48px] w-[95px] relative shrink-0">
               <img alt="ASU Logo" className="absolute h-[148%] left-[-14%] top-[-24%] w-[127%] max-w-none" src={imgLogo} />
             </div>
-            <p className="leading-none text-[#191919] text-[24px] tracking-[-0.84px] whitespace-nowrap" style={{ fontWeight: 'bold' }}>Nondegree Journey Map</p>
+            <p className="leading-none text-[#191919] text-[22px] tracking-[-0.84px] md:text-[24px]" style={{ fontWeight: 'bold' }}>Nondegree Journey Map</p>
           </div>
           {/* State Toggle */}
           <div
@@ -218,6 +270,7 @@ export function JourneyMap() {
               display: 'inline-flex',
               gap: 8,
               position: 'relative',
+              alignSelf: isMobileLayout ? 'flex-start' : 'auto',
             }}
           >
             {/* Sliding pill */}
@@ -278,14 +331,14 @@ export function JourneyMap() {
       <div className="flex flex-col items-center pb-[80px] pt-[16px]">
         {/* Map Grid */}
         <div className="w-full max-w-[1200px] px-[24px]">
-        <div ref={containerRef} className="relative w-full" style={{ height: SVG_HEIGHT }}>
+        <div ref={containerRef} className="relative w-full transition-[height] duration-300 ease-out" style={{ height: isMobileLayout ? mobileMapHeight : SVG_HEIGHT }}>
           {/* SVG for road only */}
           <svg
             className="absolute inset-0 w-full"
-            viewBox={`0 -10 ${containerWidth} ${SVG_HEIGHT}`}
+            viewBox={isMobileLayout ? `0 0 ${containerWidth} ${mobileMapHeight}` : `0 -10 ${containerWidth} ${SVG_HEIGHT}`}
             preserveAspectRatio="none"
             fill="none"
-            style={{ overflow: 'visible', height: SVG_HEIGHT }}
+            style={{ overflow: 'visible', height: isMobileLayout ? mobileMapHeight : SVG_HEIGHT }}
           >
             <defs>
               <linearGradient id="pathGradient" gradientUnits="userSpaceOnUse" x1="-800" x2="2100" y1="300" y2="300">
@@ -302,30 +355,60 @@ export function JourneyMap() {
               </linearGradient>
             </defs>
 
-            {/* Thick colored road — horizontally scaled to fit container */}
-            <g transform={`scale(${scaleX}, 1)`}>
-              <path
-                ref={roadRef}
-                d={ROAD_PATH}
-                stroke="url(#pathGradient)"
-                strokeWidth="42"
-                strokeLinecap="butt"
-                strokeLinejoin="round"
-                fill="none"
-                vectorEffect="non-scaling-stroke"
-              />
-              <path
-                ref={dashRef}
-                d={ROAD_PATH}
-                stroke="black"
-                strokeDasharray="12 12"
-                strokeLinecap="butt"
-                strokeOpacity="0.25"
-                strokeWidth="3"
-                fill="none"
-                vectorEffect="non-scaling-stroke"
-              />
-            </g>
+            {/* Thick colored road */}
+            {isMobileLayout ? (
+              <g transform={`translate(${mobilePaddingX}, ${mobilePaddingY})`}>
+                <g transform={`scale(${mobileRoadScaleX}, ${mobileRoadScaleY})`}>
+                  <g transform={`matrix(0 1 -1 0 ${SVG_HEIGHT} 0)`}>
+                    <path
+                      ref={roadRef}
+                      d={ROAD_PATH}
+                      stroke="url(#pathGradient)"
+                      strokeWidth="42"
+                      strokeLinecap="butt"
+                      strokeLinejoin="round"
+                      fill="none"
+                      vectorEffect="non-scaling-stroke"
+                    />
+                    <path
+                      ref={dashRef}
+                      d={ROAD_PATH}
+                      stroke="black"
+                      strokeDasharray="12 12"
+                      strokeLinecap="butt"
+                      strokeOpacity="0.25"
+                      strokeWidth="3"
+                      fill="none"
+                      vectorEffect="non-scaling-stroke"
+                    />
+                  </g>
+                </g>
+              </g>
+            ) : (
+              <g transform={`scale(${scaleX}, 1)`}>
+                <path
+                  ref={roadRef}
+                  d={ROAD_PATH}
+                  stroke="url(#pathGradient)"
+                  strokeWidth="42"
+                  strokeLinecap="butt"
+                  strokeLinejoin="round"
+                  fill="none"
+                  vectorEffect="non-scaling-stroke"
+                />
+                <path
+                  ref={dashRef}
+                  d={ROAD_PATH}
+                  stroke="black"
+                  strokeDasharray="12 12"
+                  strokeLinecap="butt"
+                  strokeOpacity="0.25"
+                  strokeWidth="3"
+                  fill="none"
+                  vectorEffect="non-scaling-stroke"
+                />
+              </g>
+            )}
           </svg>
 
           {/* HTML overlay — pixel-positioned, never scaled */}
@@ -333,14 +416,9 @@ export function JourneyMap() {
           {/* ── Current state: Pain point markers ── */}
           {currentPositions.map((pos, i) => {
             const marker = currentStateMarkers[i];
-            const pixelX = pos.x * scaleX;
-            const pixelY = pos.y + VIEWBOX_Y_OFFSET;
-            const side = marker.side;
-            const labelStyle: React.CSSProperties =
-              side === 'above' ? { left: pixelX, top: pixelY - LABEL_OFFSET, transform: 'translate(-50%, -100%)' } :
-              side === 'below' ? { left: pixelX, top: pixelY + LABEL_OFFSET, transform: 'translate(-50%, 0)' } :
-              side === 'left'  ? { left: pixelX - LABEL_OFFSET, top: pixelY, transform: 'translate(-100%, -50%)' } :
-                                 { left: pixelX + LABEL_OFFSET, top: pixelY, transform: 'translate(0, -50%)' };
+            const { x: pixelX, y: pixelY } = getMarkerPosition(pos);
+            const side = getResponsiveSide(marker.side, i);
+            const labelStyle = getLabelStyle(pixelX, pixelY, side);
             const textAlign: React.CSSProperties['textAlign'] =
               side === 'left' ? 'right' : side === 'right' ? 'left' : 'center';
 
@@ -359,10 +437,10 @@ export function JourneyMap() {
                   alt=""
                   className="absolute"
                   style={{
-                    left: pixelX - 25,
-                    top: pixelY - 22,
-                    width: 50,
-                    height: 45,
+                    left: pixelX - (isMobileLayout ? 22 : 25),
+                    top: pixelY - (isMobileLayout ? 20 : 22),
+                    width: isMobileLayout ? 44 : 50,
+                    height: isMobileLayout ? 40 : 45,
                     pointerEvents: 'none',
                   }}
                 />
@@ -374,13 +452,14 @@ export function JourneyMap() {
                   <div
                     style={{
                       display: 'inline-block',
-                      minWidth: 150,
+                      minWidth: isMobileLayout ? 0 : 150,
+                      maxWidth: isMobileLayout ? Math.min(220, containerWidth * 0.42) : 180,
                       fontFamily: 'Arial, sans-serif',
-                      fontSize: 16,
+                      fontSize: isMobileLayout ? 14 : 16,
                       color: '#191919',
                       textAlign,
                       lineHeight: 1.35,
-                      padding: '12px 10px',
+                      padding: isMobileLayout ? '8px 6px' : '12px 10px',
                       whiteSpace: 'pre-line',
                     }}
                   >
@@ -398,16 +477,11 @@ export function JourneyMap() {
             const isHovered = hoveredDot === i;
             const isCirclePressed = pressedDotCircle === i;
             const isLabelPressed = pressedDotLabel === i;
-            const pixelX = pos.x * scaleX;
-            const pixelY = pos.y + VIEWBOX_Y_OFFSET;
+            const { x: pixelX, y: pixelY } = getMarkerPosition(pos);
             const isFirstDot = i === 0;
 
-            const side = marker.side;
-            const labelStyle: React.CSSProperties =
-              side === 'above' ? { left: pixelX, top: pixelY - LABEL_OFFSET, transform: 'translate(-50%, -100%)' } :
-              side === 'below' ? { left: pixelX, top: pixelY + LABEL_OFFSET, transform: 'translate(-50%, 0)' } :
-              side === 'left'  ? { left: pixelX - LABEL_OFFSET, top: pixelY, transform: 'translate(-100%, -50%)' } :
-                                 { left: pixelX + LABEL_OFFSET, top: pixelY, transform: 'translate(0, -50%)' };
+            const side = getResponsiveSide(marker.side, i);
+            const labelStyle = getLabelStyle(pixelX, pixelY, side);
 
             return (
               <div
@@ -437,10 +511,10 @@ export function JourneyMap() {
                 <div
                   className="absolute cursor-pointer rounded-full"
                   style={{
-                    left: pixelX - 40,
-                    top: pixelY - 40,
-                    width: 80,
-                    height: 80,
+                    left: pixelX - (isMobileLayout ? 34 : 40),
+                    top: pixelY - (isMobileLayout ? 34 : 40),
+                    width: isMobileLayout ? 68 : 80,
+                    height: isMobileLayout ? 68 : 80,
                     background: isHovered ? 'rgba(0,0,0,0.05)' : 'transparent',
                     transition: 'background 0.2s ease',
                   }}
@@ -462,10 +536,10 @@ export function JourneyMap() {
                     alt="Email"
                     className="absolute pointer-events-none"
                     style={{
-                      left: pixelX - 23,
-                      top: pixelY - 23,
-                      width: 46,
-                      height: 46,
+                      left: pixelX - (isMobileLayout ? 20 : 23),
+                      top: pixelY - (isMobileLayout ? 20 : 23),
+                      width: isMobileLayout ? 40 : 46,
+                      height: isMobileLayout ? 40 : 46,
                       transform: isCirclePressed ? 'scale(0.9)' : isHovered ? 'scale(1.4)' : 'scale(1)',
                       filter: isHovered && !isCirclePressed ? 'drop-shadow(0 3px 8px rgba(0,0,0,0.4))' : 'none',
                       transition: 'transform 0.2s ease, filter 0.2s ease',
@@ -475,10 +549,10 @@ export function JourneyMap() {
                   <div
                     className="absolute pointer-events-none"
                     style={{
-                      left: pixelX - 9,
-                      top: pixelY - 9,
-                      width: 18,
-                      height: 18,
+                      left: pixelX - (isMobileLayout ? 8 : 9),
+                      top: pixelY - (isMobileLayout ? 8 : 9),
+                      width: isMobileLayout ? 16 : 18,
+                      height: isMobileLayout ? 16 : 18,
                       borderRadius: '50%',
                       background: '#191919',
                       border: '3px solid white',
@@ -497,11 +571,11 @@ export function JourneyMap() {
                     style={{
                       display: 'inline-block',
                       fontFamily: 'Arial, sans-serif',
-                      fontSize: 16,
+                      fontSize: isMobileLayout ? 14 : 16,
                       color: '#191919',
-                      textAlign: 'center',
+                      textAlign: side === 'left' ? 'right' : side === 'right' ? 'left' : 'center',
                       lineHeight: 1.35,
-                      padding: '12px 10px',
+                      padding: isMobileLayout ? '8px 6px' : '12px 10px',
                       borderRadius: 6,
                       background: isHovered ? 'rgba(255,255,255,0.8)' : 'transparent',
                       border: isHovered ? '1px solid rgba(0,0,0,0.1)' : '1px solid transparent',
@@ -511,6 +585,7 @@ export function JourneyMap() {
                       transform: isLabelPressed ? 'scale(0.95)' : 'scale(1)',
                       transition: 'background 0.2s ease, border 0.2s ease, box-shadow 0.2s ease',
                       whiteSpace: 'pre-line',
+                      maxWidth: isMobileLayout ? Math.min(200, containerWidth * 0.42) : 200,
                       pointerEvents: journeyState === 'future' ? 'auto' : 'none',
                       cursor: journeyState === 'future' ? 'pointer' : 'default',
                     }}
@@ -537,8 +612,10 @@ export function JourneyMap() {
             <GuidedTourPopover
               visible={showPopover}
               onDismiss={() => setShowPopover(false)}
-              anchorX={futurePositions[0].x * scaleX}
-              anchorY={futurePositions[0].y + VIEWBOX_Y_OFFSET}
+              anchorX={getMarkerPosition(futurePositions[0]).x}
+              anchorY={getMarkerPosition(futurePositions[0]).y}
+              placement={isMobileLayout ? 'below' : 'above'}
+              compact={isMobileLayout}
             />
           )}
         </div>
@@ -556,7 +633,7 @@ export function JourneyMap() {
           }}
         >
           <div className="bg-white/80 backdrop-blur-[25px] rounded-[12px] border border-black/10 shadow-[0px_10px_22px_0px_rgba(0,0,0,0.05),0px_40px_40px_0px_rgba(0,0,0,0.04)]">
-            <div className="flex gap-[30px] p-[32px]">
+            <div className={`grid p-[24px] md:p-[32px] ${isMobileLayout ? 'grid-cols-1' : 'grid-cols-5'}`} style={{ gap: summaryGap }}>
               {summaryData.map((stage) => (
                 <div key={stage.num} className="flex-1 flex flex-col gap-[8px]">
                   <p className="text-[40px] tracking-[-1.4px] leading-none" style={{ color: stage.color, fontWeight: 'bold' }}>{stage.num}</p>

@@ -7,6 +7,8 @@ interface GuidedTourPopoverProps {
   onDismiss: () => void;
   anchorX: number;
   anchorY: number;
+  placement?: 'above' | 'below';
+  compact?: boolean;
 }
 
 /* Illustration: colored path + dot + hand + stars (from Figma Frame6) */
@@ -133,9 +135,17 @@ function Illustration() {
   );
 }
 
-export function GuidedTourPopover({ visible, onDismiss, anchorX, anchorY }: GuidedTourPopoverProps) {
-  const popoverWidth = 340;
+export function GuidedTourPopover({
+  visible,
+  onDismiss,
+  anchorX,
+  anchorY,
+  placement = 'above',
+  compact = false,
+}: GuidedTourPopoverProps) {
+  const popoverWidth = compact ? 280 : 340;
   const tailSize = 10;
+  const isBelow = placement === 'below';
 
   return (
     <AnimatePresence>
@@ -144,9 +154,9 @@ export function GuidedTourPopover({ visible, onDismiss, anchorX, anchorY }: Guid
           className="absolute z-40"
           style={{
             left: anchorX,
-            top: anchorY - tailSize - 24,
+            top: isBelow ? anchorY + tailSize + 24 : anchorY - tailSize - 24,
             x: '-50%',
-            y: '-100%',
+            y: isBelow ? '0%' : '-100%',
           } as React.CSSProperties}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -168,7 +178,7 @@ export function GuidedTourPopover({ visible, onDismiss, anchorX, anchorY }: Guid
             {/* Title + illustration */}
             <div className="flex gap-[16px] items-center w-full">
               <p
-                className="flex-1 text-white text-[28px] leading-[1.2] tracking-[-0.98px]"
+                className={`flex-1 text-white leading-[1.2] ${compact ? 'text-[22px] tracking-[-0.72px]' : 'text-[28px] tracking-[-0.98px]'}`}
                 style={{ fontWeight: 'bold' }}
               >
                 This map is interactive
@@ -177,7 +187,7 @@ export function GuidedTourPopover({ visible, onDismiss, anchorX, anchorY }: Guid
             </div>
 
             {/* Body */}
-            <p className="text-[#f1f1f1] text-[16px] leading-[24px]">
+            <p className={`text-[#f1f1f1] ${compact ? 'text-[14px] leading-[22px]' : 'text-[16px] leading-[24px]'}`}>
               Each dot marks a moment in the student&apos;s experience. Click to see current friction and the proposed improvement side by side.
             </p>
 
@@ -198,13 +208,15 @@ export function GuidedTourPopover({ visible, onDismiss, anchorX, anchorY }: Guid
             className="absolute"
             style={{
               left: '50%',
-              bottom: -tailSize,
+              bottom: isBelow ? 'auto' : -tailSize,
+              top: isBelow ? -tailSize : 'auto',
               marginLeft: -tailSize,
               width: 0,
               height: 0,
               borderLeft: `${tailSize}px solid transparent`,
               borderRight: `${tailSize}px solid transparent`,
-              borderTop: `${tailSize}px solid rgba(25, 25, 25, 0.8)`,
+              borderTop: isBelow ? 'none' : `${tailSize}px solid rgba(25, 25, 25, 0.8)`,
+              borderBottom: isBelow ? `${tailSize}px solid rgba(25, 25, 25, 0.8)` : 'none',
             }}
           />
         </motion.div>
