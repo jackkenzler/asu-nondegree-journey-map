@@ -107,7 +107,7 @@ export function JourneyMap() {
   const scaleX = containerWidth / BASE_WIDTH;
   const isMobileLayout = viewportWidth < MOBILE_BREAKPOINT;
   const mobilePaddingX = Math.max(28, Math.min(56, containerWidth * 0.08));
-  const mobilePaddingY = 56;
+  const mobilePaddingY = 24;
   const mobileMapHeight = Math.max(
     MOBILE_MIN_MAP_HEIGHT,
     Math.min(MOBILE_MAX_MAP_HEIGHT, viewportWidth * 1.25)
@@ -124,17 +124,42 @@ export function JourneyMap() {
     return index % 2 === 0 ? 'right' : 'left';
   };
 
-  const getMarkerPosition = (pos: ComputedPoint) => {
+  const getFutureMobileSide = (index: number, defaultSide: 'above' | 'below' | 'left' | 'right') => {
+    if (!isMobileLayout) return defaultSide;
+
+    switch (index) {
+      case 1:
+        return 'right';
+      case 2:
+        return 'above';
+      case 4:
+        return 'below';
+      case 5:
+        return 'above';
+      case 7:
+        return 'below';
+      case 8:
+        return 'left';
+      default:
+        return getResponsiveSide(defaultSide, index);
+    }
+  };
+
+  const getMarkerPosition = (pos: ComputedPoint, index = -1, markerType: 'current' | 'future' = 'future') => {
     if (!isMobileLayout) {
       return {
         x: pos.x * scaleX,
         y: pos.y + VIEWBOX_Y_OFFSET,
       };
     }
+    const baseY = mobilePaddingY + pos.x * mobileRoadScaleY;
+    const topShift = index === 0 ? (pos.x * mobileRoadScaleY) * 0.25 : 0;
+    const stepTwoShift = markerType === 'future' && index === 1 ? mobileTrackHeight * 0.11 : 0;
+    const stepNineShift = markerType === 'future' && index === 8 ? mobileTrackHeight * 0.11 : 0;
 
     return {
       x: mobilePaddingX + (SVG_HEIGHT - (pos.y + VIEWBOX_Y_OFFSET)) * mobileRoadScaleX,
-      y: mobilePaddingY + pos.x * mobileRoadScaleY,
+      y: baseY - topShift - stepTwoShift + stepNineShift,
     };
   };
 
@@ -252,13 +277,17 @@ export function JourneyMap() {
   return (
     <div className="bg-[#F2F1EF] min-h-screen flex flex-col overflow-x-hidden" style={{ fontFamily: 'Arial, sans-serif' }}>
       {/* Header */}
-      <div className="bg-white border-b border-[#e8e8e8] shrink-0">
-        <div className="flex flex-col gap-[18px] px-[24px] py-[24px] md:px-[40px] lg:flex-row lg:items-center lg:justify-between lg:px-[85px]">
-          <div className="flex items-center gap-[16px]">
+      <div className="bg-white border-b border-[#e8e8e8] shrink-0 relative z-30">
+        <div className="flex items-center justify-between gap-[16px] px-[24px] py-[24px] md:px-[40px] lg:px-[85px]">
+          <div className="flex items-center gap-[16px] min-w-0">
             <div className="h-[48px] w-[95px] relative shrink-0">
               <img alt="ASU Logo" className="absolute h-[148%] left-[-14%] top-[-24%] w-[127%] max-w-none" src={imgLogo} />
             </div>
-            <p className="leading-none text-[#191919] text-[22px] tracking-[-0.84px] md:text-[24px]" style={{ fontWeight: 'bold' }}>Nondegree Journey Map</p>
+            {!isMobileLayout && (
+              <p className="leading-none text-[#191919] text-[24px] tracking-[-0.84px] whitespace-nowrap" style={{ fontWeight: 'bold' }}>
+                Nondegree Journey Map
+              </p>
+            )}
           </div>
           {/* State Toggle */}
           <div
@@ -270,7 +299,7 @@ export function JourneyMap() {
               display: 'inline-flex',
               gap: 8,
               position: 'relative',
-              alignSelf: isMobileLayout ? 'flex-start' : 'auto',
+              flexShrink: 0,
             }}
           >
             {/* Sliding pill */}
@@ -328,17 +357,21 @@ export function JourneyMap() {
       </div>
 
       {/* Map + Summary */}
-      <div className="flex flex-col items-center pb-[80px] pt-[16px]">
+      <div className="flex flex-col items-center pb-[80px] pt-0 relative z-10">
         {/* Map Grid */}
         <div className="w-full max-w-[1200px] px-[24px]">
-        <div ref={containerRef} className="relative w-full transition-[height] duration-300 ease-out" style={{ height: isMobileLayout ? mobileMapHeight : SVG_HEIGHT }}>
+        <div
+          ref={containerRef}
+          className="relative w-full transition-[height] duration-300 ease-out"
+          style={{ height: isMobileLayout ? mobileMapHeight : SVG_HEIGHT, marginTop: 0 }}
+        >
           {/* SVG for road only */}
           <svg
             className="absolute inset-0 w-full"
             viewBox={isMobileLayout ? `0 0 ${containerWidth} ${mobileMapHeight}` : `0 -10 ${containerWidth} ${SVG_HEIGHT}`}
             preserveAspectRatio="none"
             fill="none"
-            style={{ overflow: 'visible', height: isMobileLayout ? mobileMapHeight : SVG_HEIGHT }}
+            style={{ overflow: isMobileLayout ? 'hidden' : 'visible', height: isMobileLayout ? mobileMapHeight : SVG_HEIGHT }}
           >
             <defs>
               <linearGradient id="pathGradient" gradientUnits="userSpaceOnUse" x1="-800" x2="2100" y1="300" y2="300">
@@ -416,7 +449,7 @@ export function JourneyMap() {
           {/* ── Current state: Pain point markers ── */}
           {currentPositions.map((pos, i) => {
             const marker = currentStateMarkers[i];
-            const { x: pixelX, y: pixelY } = getMarkerPosition(pos);
+            const { x: pixelX, y: pixelY } = getMarkerPosition(pos, i, 'current');
             const side = getResponsiveSide(marker.side, i);
             const labelStyle = getLabelStyle(pixelX, pixelY, side);
             const textAlign: React.CSSProperties['textAlign'] =
@@ -455,7 +488,7 @@ export function JourneyMap() {
                       minWidth: isMobileLayout ? 0 : 150,
                       maxWidth: isMobileLayout ? Math.min(220, containerWidth * 0.42) : 180,
                       fontFamily: 'Arial, sans-serif',
-                      fontSize: isMobileLayout ? 14 : 16,
+                      fontSize: 16,
                       color: '#191919',
                       textAlign,
                       lineHeight: 1.35,
@@ -477,10 +510,10 @@ export function JourneyMap() {
             const isHovered = hoveredDot === i;
             const isCirclePressed = pressedDotCircle === i;
             const isLabelPressed = pressedDotLabel === i;
-            const { x: pixelX, y: pixelY } = getMarkerPosition(pos);
+            const { x: pixelX, y: pixelY } = getMarkerPosition(pos, i, 'future');
             const isFirstDot = i === 0;
 
-            const side = getResponsiveSide(marker.side, i);
+            const side = getFutureMobileSide(i, marker.side);
             const labelStyle = getLabelStyle(pixelX, pixelY, side);
 
             return (
@@ -571,7 +604,7 @@ export function JourneyMap() {
                     style={{
                       display: 'inline-block',
                       fontFamily: 'Arial, sans-serif',
-                      fontSize: isMobileLayout ? 14 : 16,
+                      fontSize: 16,
                       color: '#191919',
                       textAlign: side === 'left' ? 'right' : side === 'right' ? 'left' : 'center',
                       lineHeight: 1.35,
@@ -585,7 +618,11 @@ export function JourneyMap() {
                       transform: isLabelPressed ? 'scale(0.95)' : 'scale(1)',
                       transition: 'background 0.2s ease, border 0.2s ease, box-shadow 0.2s ease',
                       whiteSpace: 'pre-line',
-                      maxWidth: isMobileLayout ? Math.min(200, containerWidth * 0.42) : 200,
+                      maxWidth: isMobileLayout
+                        ? i === 1
+                          ? Math.min(260, containerWidth * 0.62)
+                          : Math.min(200, containerWidth * 0.42)
+                        : 200,
                       pointerEvents: journeyState === 'future' ? 'auto' : 'none',
                       cursor: journeyState === 'future' ? 'pointer' : 'default',
                     }}
@@ -612,8 +649,8 @@ export function JourneyMap() {
             <GuidedTourPopover
               visible={showPopover}
               onDismiss={() => setShowPopover(false)}
-              anchorX={getMarkerPosition(futurePositions[0]).x}
-              anchorY={getMarkerPosition(futurePositions[0]).y}
+              anchorX={getMarkerPosition(futurePositions[0], 0, 'future').x}
+              anchorY={getMarkerPosition(futurePositions[0], 0, 'future').y}
               placement={isMobileLayout ? 'below' : 'above'}
               compact={isMobileLayout}
             />

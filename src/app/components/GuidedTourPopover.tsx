@@ -143,20 +143,23 @@ export function GuidedTourPopover({
   placement = 'above',
   compact = false,
 }: GuidedTourPopoverProps) {
-  const popoverWidth = compact ? 280 : 340;
+  const popoverWidth = compact ? undefined : 340;
   const tailSize = 10;
   const isBelow = placement === 'below';
+  const mobileInset = 24;
 
   return (
     <AnimatePresence>
       {visible && (
         <motion.div
-          className="absolute z-40"
+          className={compact ? 'fixed z-40' : 'absolute z-40'}
           style={{
-            left: anchorX,
-            top: isBelow ? anchorY + tailSize + 24 : anchorY - tailSize - 24,
-            x: '-50%',
-            y: isBelow ? '0%' : '-100%',
+            left: compact ? mobileInset : anchorX,
+            right: compact ? mobileInset : 'auto',
+            bottom: compact ? mobileInset : 'auto',
+            top: compact ? 'auto' : isBelow ? anchorY + tailSize + 24 : anchorY - tailSize - 24,
+            x: compact ? '0%' : '-50%',
+            y: compact ? '0%' : isBelow ? '0%' : '-100%',
           } as React.CSSProperties}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -168,7 +171,7 @@ export function GuidedTourPopover({
             className="relative rounded-[8px] flex flex-col gap-[16px] p-[24px]"
             style={{
               width: popoverWidth,
-              background: 'rgba(25, 25, 25, 0.8)',
+              background: compact ? 'rgba(25, 25, 25, 0.9)' : 'rgba(25, 25, 25, 0.8)',
               backdropFilter: 'blur(20px)',
               WebkitBackdropFilter: 'blur(20px)',
               boxShadow: '-3px 0px 24px 0px rgba(0,0,0,0.03), -6px 0px 24px 0px rgba(0,0,0,0.06)',
@@ -176,9 +179,9 @@ export function GuidedTourPopover({
             }}
           >
             {/* Title + illustration */}
-            <div className="flex gap-[16px] items-center w-full">
+            <div className={`flex items-center w-full ${compact ? 'gap-[50px]' : 'gap-[16px]'}`}>
               <p
-                className={`flex-1 text-white leading-[1.2] ${compact ? 'text-[22px] tracking-[-0.72px]' : 'text-[28px] tracking-[-0.98px]'}`}
+                className={`flex-1 text-white leading-[1.2] ${compact ? 'text-[26px] tracking-[-0.72px]' : 'text-[28px] tracking-[-0.98px]'}`}
                 style={{ fontWeight: 'bold' }}
               >
                 This map is interactive
@@ -207,6 +210,7 @@ export function GuidedTourPopover({
           <div
             className="absolute"
             style={{
+              display: compact ? 'none' : 'block',
               left: '50%',
               bottom: isBelow ? 'auto' : -tailSize,
               top: isBelow ? -tailSize : 'auto',
