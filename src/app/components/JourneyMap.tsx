@@ -33,9 +33,9 @@ const futureStateMarkers = [
   { pct: 0.46, label: 'Starts a unified\napplication', side: 'left' as const, stageIdx: 1, stepIdx: 1 },
   { pct: 0.50, label: 'Applies for a class', side: 'right' as const, stageIdx: 1, stepIdx: 2 },
   { pct: 0.52, label: 'Gets application\nconfirmation email', side: 'left' as const, stageIdx: 2, stepIdx: 0 },
-  { pct: 0.64, label: 'Tracks application\nstatus', side: 'above' as const, stageIdx: 2, stepIdx: 1 },
-  { pct: 0.70, label: 'Sees admission\ndecision', side: 'right' as const, stageIdx: 3, stepIdx: 0 },
-  { pct: 0.73, label: 'Enrolls in\nthe class', side: 'right' as const, stageIdx: 3, stepIdx: 1 },
+  { pct: 0.64, label: 'Tracks application\nstatus', side: 'right' as const, stageIdx: 2, stepIdx: 1 },
+  { pct: 0.69, label: 'Sees admission\ndecision', side: 'right' as const, stageIdx: 3, stepIdx: 0 },
+  { pct: 0.73, label: 'Enrolls in\nthe class', side: 'above' as const, stageIdx: 3, stepIdx: 1 },
   { pct: 0.76, label: 'Pays\u00a0tuition\nclearly', side: 'above' as const, stageIdx: 4, stepIdx: 0 },
 ];
 

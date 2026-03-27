@@ -17,6 +17,7 @@ interface PlatformModalProps {
 }
 
 export function PlatformModal({ platform, stageColor, stepLabel, stageName, onClose, beforeImg: beforeImgProp, afterImg: afterImgProp }: PlatformModalProps) {
+  const IMAGE_ASPECT_RATIO = 1280 / 832;
   const beforeSrc = beforeImgProp ?? imgBefore;
   const afterSrc = afterImgProp ?? imgAfter;
   const [sliderPosition, setSliderPosition] = useState(50);
@@ -36,11 +37,14 @@ export function PlatformModal({ platform, stageColor, stepLabel, stageName, onCl
   useEffect(() => {
     if (!isDragging) return;
     const onMove = (e: MouseEvent) => updateSlider(e.clientX);
-    const onTouch = (e: TouchEvent) => updateSlider(e.touches[0].clientX);
+    const onTouch = (e: TouchEvent) => {
+      e.preventDefault();
+      updateSlider(e.touches[0].clientX);
+    };
     const onUp = () => setIsDragging(false);
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
-    window.addEventListener('touchmove', onTouch);
+    window.addEventListener('touchmove', onTouch, { passive: false });
     window.addEventListener('touchend', onUp);
     return () => {
       window.removeEventListener('mousemove', onMove);
@@ -49,6 +53,33 @@ export function PlatformModal({ platform, stageColor, stepLabel, stageName, onCl
       window.removeEventListener('touchend', onUp);
     };
   }, [isDragging]);
+
+  useEffect(() => {
+    const scrollY = window.scrollY;
+    const originalBodyOverflow = document.body.style.overflow;
+    const originalBodyPosition = document.body.style.position;
+    const originalBodyTop = document.body.style.top;
+    const originalBodyWidth = document.body.style.width;
+    const originalBodyTouchAction = document.body.style.touchAction;
+    const originalHtmlOverflow = document.documentElement.style.overflow;
+
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = '100%';
+    document.body.style.touchAction = 'none';
+
+    return () => {
+      document.documentElement.style.overflow = originalHtmlOverflow;
+      document.body.style.overflow = originalBodyOverflow;
+      document.body.style.position = originalBodyPosition;
+      document.body.style.top = originalBodyTop;
+      document.body.style.width = originalBodyWidth;
+      document.body.style.touchAction = originalBodyTouchAction;
+      window.scrollTo(0, scrollY);
+    };
+  }, []);
 
   return (
     <motion.div
@@ -84,24 +115,33 @@ export function PlatformModal({ platform, stageColor, stepLabel, stageName, onCl
         </div>
 
         {/* Slider */}
-        <div className="p-[16px] md:p-[24px] overflow-y-auto">
+        <div className="p-[16px] md:p-[24px] overflow-y-auto overscroll-contain">
           <div
             ref={containerRef}
-            className="relative w-full h-[min(520px,55vh)] bg-[#fafafa] rounded-[12px] overflow-hidden cursor-ew-resize select-none"
-            style={{ boxShadow: '0px 5px 8px 0px rgba(0,0,0,0.02), 0px 12px 40px 0px rgba(0,0,0,0.03), 0px 26px 80px 0px rgba(0,0,0,0.08)' }}
+            className="relative w-full h-auto bg-[#fafafa] rounded-[12px] overflow-hidden cursor-ew-resize select-none max-h-[min(52vh,520px)] md:max-h-[min(60vh,520px)]"
+            style={{
+              aspectRatio: `${IMAGE_ASPECT_RATIO}`,
+              boxShadow: '0px 5px 8px 0px rgba(0,0,0,0.02), 0px 12px 40px 0px rgba(0,0,0,0.03), 0px 26px 80px 0px rgba(0,0,0,0.08)',
+              touchAction: 'none',
+              overscrollBehavior: 'contain',
+            }}
             onMouseDown={(e) => { updateSlider(e.clientX); setIsDragging(true); }}
-            onTouchStart={(e) => { updateSlider(e.touches[0].clientX); setIsDragging(true); }}
+            onTouchStart={(e) => {
+              e.preventDefault();
+              updateSlider(e.touches[0].clientX);
+              setIsDragging(true);
+            }}
           >
             <div className="absolute inset-0 border border-[#e8e8e8] rounded-[12px] pointer-events-none z-10" />
 
             {/* After / Proposed (full, underneath) */}
             <div className="absolute inset-0">
-              <img src={afterSrc} alt="Future state" className="w-full h-full object-cover pointer-events-none select-none" draggable={false} />
+              <img src={afterSrc} alt="Future state" className="w-full h-full object-contain pointer-events-none select-none" draggable={false} />
             </div>
 
             {/* Before / Current (clipped from left) */}
             <div className="absolute inset-0" style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}>
-              <img src={beforeSrc} alt="Current state" className="w-full h-full object-cover pointer-events-none select-none" draggable={false} />
+              <img src={beforeSrc} alt="Current state" className="w-full h-full object-contain pointer-events-none select-none" draggable={false} />
             </div>
 
             {/* Divider */}
