@@ -179,7 +179,7 @@ export function GuidedTourPopover({
             }}
           >
             {/* Title + illustration */}
-            <div className={`flex items-center w-full ${compact ? 'gap-[50px]' : 'gap-[16px]'}`}>
+            <div className={`flex items-center w-full ${compact ? 'gap-[20px]' : 'gap-[16px]'}`}>
               <p
                 className={`flex-1 text-white leading-[1.2] ${compact ? 'text-[26px] tracking-[-0.72px]' : 'text-[28px] tracking-[-0.98px]'}`}
                 style={{ fontWeight: 'bold' }}
@@ -190,7 +190,7 @@ export function GuidedTourPopover({
             </div>
 
             {/* Body */}
-            <p className={`text-[#f1f1f1] ${compact ? 'text-[14px] leading-[22px]' : 'text-[16px] leading-[24px]'}`}>
+            <p className={`text-[#f1f1f1] ${compact ? 'text-[16px] leading-[24px]' : 'text-[16px] leading-[24px]'}`}>
               Each dot marks a moment in the student&apos;s experience. Click to see current friction and the proposed improvement side by side.
             </p>
 
@@ -198,7 +198,7 @@ export function GuidedTourPopover({
             <div className="flex justify-end">
               <button
                 onClick={onDismiss}
-                className="bg-white rounded-[25px] px-[16px] py-[8px] text-[14px] text-[#191919] text-center cursor-pointer hover:bg-[#e8e8e8] transition-colors"
+                className={`bg-white rounded-[25px] px-[16px] py-[8px] text-[#191919] text-center cursor-pointer hover:bg-[#e8e8e8] transition-colors ${compact ? 'text-[16px] leading-[24px]' : 'text-[14px]'}`}
                 style={{ fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}
               >
                 Got it

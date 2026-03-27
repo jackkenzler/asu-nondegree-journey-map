@@ -52,7 +52,7 @@ export function PlatformModal({ platform, stageColor, stepLabel, stageName, onCl
 
   return (
     <motion.div
-      className="fixed inset-0 z-50 flex items-center justify-center px-[40px]"
+      className="fixed inset-0 z-50 flex items-center justify-center px-[12px] py-[16px] md:px-[40px]"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -61,7 +61,7 @@ export function PlatformModal({ platform, stageColor, stepLabel, stageName, onCl
     >
       <div className="absolute inset-0 bg-black/60" />
       <motion.div
-        className="relative bg-white rounded-[12px] shadow-2xl max-w-[848px] w-full overflow-hidden"
+        className="relative bg-white rounded-[12px] shadow-2xl max-w-[848px] w-full overflow-hidden max-h-[calc(100vh-32px)] flex flex-col"
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
@@ -70,12 +70,12 @@ export function PlatformModal({ platform, stageColor, stepLabel, stageName, onCl
         style={{ fontFamily: 'Arial, sans-serif' }}
       >
         {/* Header */}
-        <div className="border-b border-[#e8e8e8] pb-[17px] pl-[24px] pr-[16px] pt-[16px] flex items-center justify-between">
+        <div className="border-b border-[#e8e8e8] pb-[12px] pl-[16px] pr-[12px] pt-[12px] md:pb-[17px] md:pl-[24px] md:pr-[16px] md:pt-[16px] flex items-center justify-between shrink-0">
           <div className="flex flex-col gap-[2px]">
             <p className="text-[14px] tracking-[-0.49px]" style={{ color: stageColor, fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>{stageName}</p>
-            <h2 className="text-[24px] text-black tracking-[-0.84px] leading-[36px]" style={{ fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>{stepLabel}</h2>
+            <h2 className="text-[20px] md:text-[24px] text-black tracking-[-0.84px] leading-[28px] md:leading-[36px]" style={{ fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>{stepLabel}</h2>
           </div>
-          <button onClick={onClose} className="size-[60px] flex items-center justify-center rounded-full hover:bg-[#e8e8e8] transition-colors cursor-pointer">
+          <button onClick={onClose} className="size-[48px] md:size-[60px] flex items-center justify-center rounded-full hover:bg-[#e8e8e8] transition-colors cursor-pointer shrink-0">
             <svg className="size-[24px]" fill="none" viewBox="0 0 24 24">
               <path d="M19 5L5 19" stroke="#0A0A0A" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.33333" />
               <path d="M5 5L19 19" stroke="#0A0A0A" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.33333" />
@@ -84,10 +84,10 @@ export function PlatformModal({ platform, stageColor, stepLabel, stageName, onCl
         </div>
 
         {/* Slider */}
-        <div className="p-[24px]">
+        <div className="p-[16px] md:p-[24px] overflow-y-auto">
           <div
             ref={containerRef}
-            className="relative w-full h-[520px] bg-[#fafafa] rounded-[12px] overflow-hidden cursor-ew-resize select-none"
+            className="relative w-full h-[min(520px,55vh)] bg-[#fafafa] rounded-[12px] overflow-hidden cursor-ew-resize select-none"
             style={{ boxShadow: '0px 5px 8px 0px rgba(0,0,0,0.02), 0px 12px 40px 0px rgba(0,0,0,0.03), 0px 26px 80px 0px rgba(0,0,0,0.08)' }}
             onMouseDown={(e) => { updateSlider(e.clientX); setIsDragging(true); }}
             onTouchStart={(e) => { updateSlider(e.touches[0].clientX); setIsDragging(true); }}

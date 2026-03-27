@@ -28,15 +28,15 @@ const currentStateMarkers = [
 // Future state: 9 step dots, distributed across visible path range
 const futureStateMarkers = [
   { pct: 0.22, label: 'Consistent policies\non landing pages', side: 'above' as const, stageIdx: 0, stepIdx: 0 },
-  { pct: 0.28, label: 'Links from Class Search\nto application', side: 'below' as const, stageIdx: 0, stepIdx: 1 },
+  { pct: 0.25, label: 'Links from Class Search\nto application', side: 'below' as const, stageIdx: 0, stepIdx: 1 },
   { pct: 0.34, label: 'Sign in\nto continue', side: 'left' as const, stageIdx: 1, stepIdx: 0 },
-  { pct: 0.40, label: 'Starts a unified\napplication', side: 'left' as const, stageIdx: 1, stepIdx: 1 },
-  { pct: 0.46, label: 'Applies for a class', side: 'right' as const, stageIdx: 1, stepIdx: 2 },
-  { pct: 0.53, label: 'Gets application\nconfirmation email', side: 'left' as const, stageIdx: 2, stepIdx: 0 },
-  { pct: 0.59, label: 'Tracks application\nstatus', side: 'above' as const, stageIdx: 2, stepIdx: 1 },
-  { pct: 0.65, label: 'Sees admission\ndecision', side: 'right' as const, stageIdx: 3, stepIdx: 0 },
-  { pct: 0.71, label: 'Enrolls in\nthe class', side: 'right' as const, stageIdx: 3, stepIdx: 1 },
-  { pct: 0.77, label: 'Pays\u00a0tuition\nclearly', side: 'above' as const, stageIdx: 4, stepIdx: 0 },
+  { pct: 0.46, label: 'Starts a unified\napplication', side: 'left' as const, stageIdx: 1, stepIdx: 1 },
+  { pct: 0.50, label: 'Applies for a class', side: 'right' as const, stageIdx: 1, stepIdx: 2 },
+  { pct: 0.52, label: 'Gets application\nconfirmation email', side: 'left' as const, stageIdx: 2, stepIdx: 0 },
+  { pct: 0.64, label: 'Tracks application\nstatus', side: 'above' as const, stageIdx: 2, stepIdx: 1 },
+  { pct: 0.70, label: 'Sees admission\ndecision', side: 'right' as const, stageIdx: 3, stepIdx: 0 },
+  { pct: 0.73, label: 'Enrolls in\nthe class', side: 'right' as const, stageIdx: 3, stepIdx: 1 },
+  { pct: 0.76, label: 'Pays\u00a0tuition\nclearly', side: 'above' as const, stageIdx: 4, stepIdx: 0 },
 ];
 
 const stageColors = ['#78BE20', '#00A3E0', '#FF7F32', '#E74973', '#FFC627'];
@@ -60,8 +60,8 @@ const futureSummaryData = [
 // Label offset for future state step dots
 const LABEL_OFFSET = 32;
 const MOBILE_BREAKPOINT = 980;
-const MOBILE_MIN_MAP_HEIGHT = 980;
-const MOBILE_MAX_MAP_HEIGHT = 1280;
+const MOBILE_ROAD_HEIGHT = 1090;
+const MOBILE_ROAD_ASPECT_RATIO = 514 / 980;
 
 // Reference width the path was designed for
 const BASE_WIDTH = 1280;
@@ -69,11 +69,33 @@ const SVG_HEIGHT = 620;
 const VIEWBOX_Y_OFFSET = 10;
 
 type JourneyState = 'current' | 'future';
+type LabelSide = 'above' | 'below' | 'left' | 'right';
 
 interface ComputedPoint {
   x: number;
   y: number;
 }
+
+interface MobileFutureLabelConfig {
+  side: LabelSide;
+  distance?: number;
+  maxWidth?: number;
+  shiftX?: number;
+  shiftY?: number;
+}
+
+const MOBILE_FUTURE_LABEL_CONFIGS: Record<number, MobileFutureLabelConfig> = {
+  0: { side: 'right', distance: 30, maxWidth: 230, shiftY: -6 },
+  1: { side: 'right', distance: 30, maxWidth: 300, shiftY: -6 },
+  2: { side: 'above', distance: 30, maxWidth: 250 },
+  3: { side: 'above', distance: 30, maxWidth: 220, shiftX: 8 },
+  4: { side: 'above', distance: 30, maxWidth: 230, shiftX: 8 },
+  5: { side: 'below', distance: 30, maxWidth: 250, shiftX: -10 },
+  6: { side: 'below', distance: 30, maxWidth: 220, shiftX: 12 },
+  7: { side: 'above', distance: 30, maxWidth: 250, shiftX: -20 },
+  8: { side: 'left', distance: 30, maxWidth: 180, shiftY: -44 },
+  9: { side: 'left', distance: 30, maxWidth: 170, shiftY: -4 },
+};
 
 interface SelectedStep {
   stageIdx: number;
@@ -108,41 +130,39 @@ export function JourneyMap() {
   const isMobileLayout = viewportWidth < MOBILE_BREAKPOINT;
   const mobilePaddingX = Math.max(28, Math.min(56, containerWidth * 0.08));
   const mobilePaddingY = 24;
-  const mobileMapHeight = Math.max(
-    MOBILE_MIN_MAP_HEIGHT,
-    Math.min(MOBILE_MAX_MAP_HEIGHT, viewportWidth * 1.25)
-  );
-  const mobileTrackWidth = Math.max(containerWidth - mobilePaddingX * 2, 220);
-  const mobileTrackHeight = mobileMapHeight - mobilePaddingY * 2;
+  const mobileTrackHeight = MOBILE_ROAD_HEIGHT;
+  const mobileMapHeight = mobileTrackHeight + mobilePaddingY * 2;
+  const mobileTrackWidth = mobileTrackHeight * MOBILE_ROAD_ASPECT_RATIO;
   const mobileRoadScaleX = mobileTrackWidth / SVG_HEIGHT;
   const mobileRoadScaleY = mobileTrackHeight / BASE_WIDTH;
+  const mobileRoadStartX = isMobileLayout ? (containerWidth - mobileTrackWidth) / 2 : 0;
   const labelOffset = isMobileLayout ? 44 : LABEL_OFFSET;
   const summaryGap = isMobileLayout ? 18 : 30;
 
-  const getResponsiveSide = (defaultSide: 'above' | 'below' | 'left' | 'right', index: number) => {
+  const getResponsiveSide = (defaultSide: LabelSide, index: number) => {
     if (!isMobileLayout) return defaultSide;
     return index % 2 === 0 ? 'right' : 'left';
   };
 
-  const getFutureMobileSide = (index: number, defaultSide: 'above' | 'below' | 'left' | 'right') => {
-    if (!isMobileLayout) return defaultSide;
-
-    switch (index) {
-      case 1:
-        return 'right';
-      case 2:
-        return 'above';
-      case 4:
-        return 'below';
-      case 5:
-        return 'above';
-      case 7:
-        return 'below';
-      case 8:
-        return 'left';
-      default:
-        return getResponsiveSide(defaultSide, index);
+  const getFutureMobileLabelConfig = (index: number, defaultSide: LabelSide) => {
+    if (!isMobileLayout) {
+      return {
+        side: defaultSide,
+        distance: LABEL_OFFSET,
+        maxWidth: 200,
+        shiftX: 0,
+        shiftY: 0,
+      };
     }
+
+    const config = MOBILE_FUTURE_LABEL_CONFIGS[index];
+    return {
+      side: config?.side ?? getResponsiveSide(defaultSide, index),
+      distance: config?.distance ?? labelOffset,
+      maxWidth: config?.maxWidth ?? Math.min(260, containerWidth * 0.56),
+      shiftX: config?.shiftX ?? 0,
+      shiftY: config?.shiftY ?? 0,
+    };
   };
 
   const getMarkerPosition = (pos: ComputedPoint, index = -1, markerType: 'current' | 'future' = 'future') => {
@@ -154,20 +174,25 @@ export function JourneyMap() {
     }
     const baseY = mobilePaddingY + pos.x * mobileRoadScaleY;
     const topShift = index === 0 ? (pos.x * mobileRoadScaleY) * 0.25 : 0;
-    const stepTwoShift = markerType === 'future' && index === 1 ? mobileTrackHeight * 0.11 : 0;
-    const stepNineShift = markerType === 'future' && index === 8 ? mobileTrackHeight * 0.11 : 0;
 
     return {
-      x: mobilePaddingX + (SVG_HEIGHT - (pos.y + VIEWBOX_Y_OFFSET)) * mobileRoadScaleX,
-      y: baseY - topShift - stepTwoShift + stepNineShift,
+      x: mobileRoadStartX + (SVG_HEIGHT - (pos.y + VIEWBOX_Y_OFFSET)) * mobileRoadScaleX,
+      y: baseY - topShift,
     };
   };
 
-  const getLabelStyle = (x: number, y: number, side: 'above' | 'below' | 'left' | 'right'): React.CSSProperties => (
-    side === 'above' ? { left: x, top: y - labelOffset, transform: 'translate(-50%, -100%)' } :
-    side === 'below' ? { left: x, top: y + labelOffset, transform: 'translate(-50%, 0)' } :
-    side === 'left' ? { left: x - labelOffset, top: y, transform: 'translate(-100%, -50%)' } :
-    { left: x + labelOffset, top: y, transform: 'translate(0, -50%)' }
+  const getLabelStyle = (
+    x: number,
+    y: number,
+    side: LabelSide,
+    distance = labelOffset,
+    shiftX = 0,
+    shiftY = 0,
+  ): React.CSSProperties => (
+    side === 'above' ? { left: x + shiftX, top: y - distance + shiftY, transform: 'translate(-50%, -100%)' } :
+    side === 'below' ? { left: x + shiftX, top: y + distance + shiftY, transform: 'translate(-50%, 0)' } :
+    side === 'left' ? { left: x - distance + shiftX, top: y + shiftY, transform: 'translate(-100%, -50%)' } :
+    { left: x + distance + shiftX, top: y + shiftY, transform: 'translate(0, -50%)' }
   );
 
   const handleToggle = (newState: JourneyState) => {
@@ -278,7 +303,7 @@ export function JourneyMap() {
     <div className="bg-[#F2F1EF] min-h-screen flex flex-col overflow-x-hidden" style={{ fontFamily: 'Arial, sans-serif' }}>
       {/* Header */}
       <div className="bg-white border-b border-[#e8e8e8] shrink-0 relative z-30">
-        <div className="flex items-center justify-between gap-[16px] px-[24px] py-[24px] md:px-[40px] lg:px-[85px]">
+        <div className="flex items-center justify-between gap-[16px] px-[12px] py-[12px] md:px-[40px] md:py-[24px] lg:px-[85px]">
           <div className="flex items-center gap-[16px] min-w-0">
             <div className="h-[48px] w-[95px] relative shrink-0">
               <img alt="ASU Logo" className="absolute h-[148%] left-[-14%] top-[-24%] w-[127%] max-w-none" src={imgLogo} />
@@ -333,7 +358,7 @@ export function JourneyMap() {
                   style={{
                     position: 'relative',
                     zIndex: 1,
-                    padding: '8px 16px',
+                    padding: isMobileLayout ? '8px 8px' : '8px 16px',
                     background: !isActive
                       ? isPressed ? 'rgba(0,0,0,0.10)' : isHovered ? 'rgba(0,0,0,0.06)' : 'transparent'
                       : 'transparent',
@@ -363,7 +388,7 @@ export function JourneyMap() {
         <div
           ref={containerRef}
           className="relative w-full transition-[height] duration-300 ease-out"
-          style={{ height: isMobileLayout ? mobileMapHeight : SVG_HEIGHT, marginTop: 0 }}
+          style={{ height: isMobileLayout ? mobileMapHeight : SVG_HEIGHT, marginTop: 0, overflow: 'visible' }}
         >
           {/* SVG for road only */}
           <svg
@@ -371,7 +396,7 @@ export function JourneyMap() {
             viewBox={isMobileLayout ? `0 0 ${containerWidth} ${mobileMapHeight}` : `0 -10 ${containerWidth} ${SVG_HEIGHT}`}
             preserveAspectRatio="none"
             fill="none"
-            style={{ overflow: isMobileLayout ? 'hidden' : 'visible', height: isMobileLayout ? mobileMapHeight : SVG_HEIGHT }}
+            style={{ overflow: 'visible', height: isMobileLayout ? mobileMapHeight : SVG_HEIGHT }}
           >
             <defs>
               <linearGradient id="pathGradient" gradientUnits="userSpaceOnUse" x1="-800" x2="2100" y1="300" y2="300">
@@ -390,7 +415,7 @@ export function JourneyMap() {
 
             {/* Thick colored road */}
             {isMobileLayout ? (
-              <g transform={`translate(${mobilePaddingX}, ${mobilePaddingY})`}>
+              <g transform={`translate(${mobileRoadStartX}, ${mobilePaddingY})`}>
                 <g transform={`scale(${mobileRoadScaleX}, ${mobileRoadScaleY})`}>
                   <g transform={`matrix(0 1 -1 0 ${SVG_HEIGHT} 0)`}>
                     <path
@@ -492,7 +517,7 @@ export function JourneyMap() {
                       color: '#191919',
                       textAlign,
                       lineHeight: 1.35,
-                      padding: isMobileLayout ? '8px 6px' : '12px 10px',
+                      padding: isMobileLayout ? '12px' : '12px 10px',
                       whiteSpace: 'pre-line',
                     }}
                   >
@@ -512,9 +537,18 @@ export function JourneyMap() {
             const isLabelPressed = pressedDotLabel === i;
             const { x: pixelX, y: pixelY } = getMarkerPosition(pos, i, 'future');
             const isFirstDot = i === 0;
+            const showActiveFutureStyle = isMobileLayout || isHovered;
 
-            const side = getFutureMobileSide(i, marker.side);
-            const labelStyle = getLabelStyle(pixelX, pixelY, side);
+            const mobileLabelConfig = getFutureMobileLabelConfig(i, marker.side);
+            const side = mobileLabelConfig.side;
+            const labelStyle = getLabelStyle(
+              pixelX,
+              pixelY,
+              side,
+              mobileLabelConfig.distance,
+              mobileLabelConfig.shiftX,
+              mobileLabelConfig.shiftY,
+            );
 
             return (
               <div
@@ -574,7 +608,7 @@ export function JourneyMap() {
                       width: isMobileLayout ? 40 : 46,
                       height: isMobileLayout ? 40 : 46,
                       transform: isCirclePressed ? 'scale(0.9)' : isHovered ? 'scale(1.4)' : 'scale(1)',
-                      filter: isHovered && !isCirclePressed ? 'drop-shadow(0 3px 8px rgba(0,0,0,0.4))' : 'none',
+                      filter: showActiveFutureStyle && !isCirclePressed ? 'drop-shadow(0 3px 8px rgba(0,0,0,0.4))' : 'none',
                       transition: 'transform 0.2s ease, filter 0.2s ease',
                     }}
                   />
@@ -590,7 +624,7 @@ export function JourneyMap() {
                       background: '#191919',
                       border: '3px solid white',
                       transform: isCirclePressed ? 'scale(0.9)' : isHovered ? 'scale(1.5)' : 'scale(1)',
-                      boxShadow: isHovered && !isCirclePressed ? '0 3px 12px rgba(0,0,0,0.45)' : 'none',
+                      boxShadow: showActiveFutureStyle && !isCirclePressed ? '0 3px 12px rgba(0,0,0,0.45)' : 'none',
                       transition: 'transform 0.2s ease, box-shadow 0.2s ease',
                     }}
                   />
@@ -608,21 +642,17 @@ export function JourneyMap() {
                       color: '#191919',
                       textAlign: side === 'left' ? 'right' : side === 'right' ? 'left' : 'center',
                       lineHeight: 1.35,
-                      padding: isMobileLayout ? '8px 6px' : '12px 10px',
+                      padding: isMobileLayout ? '12px' : '12px 10px',
                       borderRadius: 6,
-                      background: isHovered ? 'rgba(255,255,255,0.8)' : 'transparent',
-                      border: isHovered ? '1px solid rgba(0,0,0,0.1)' : '1px solid transparent',
-                      backdropFilter: isHovered ? 'blur(16px)' : undefined,
-                      WebkitBackdropFilter: isHovered ? 'blur(16px)' : undefined,
-                      boxShadow: isHovered ? '0px 2px 8px rgba(0,0,0,0.1)' : 'none',
+                      background: showActiveFutureStyle ? 'rgba(255,255,255,0.8)' : 'transparent',
+                      border: showActiveFutureStyle ? '1px solid rgba(0,0,0,0.1)' : '1px solid transparent',
+                      backdropFilter: showActiveFutureStyle ? 'blur(16px)' : undefined,
+                      WebkitBackdropFilter: showActiveFutureStyle ? 'blur(16px)' : undefined,
+                      boxShadow: showActiveFutureStyle ? '0px 2px 8px rgba(0,0,0,0.1)' : 'none',
                       transform: isLabelPressed ? 'scale(0.95)' : 'scale(1)',
                       transition: 'background 0.2s ease, border 0.2s ease, box-shadow 0.2s ease',
                       whiteSpace: 'pre-line',
-                      maxWidth: isMobileLayout
-                        ? i === 1
-                          ? Math.min(260, containerWidth * 0.62)
-                          : Math.min(200, containerWidth * 0.42)
-                        : 200,
+                      maxWidth: isMobileLayout ? mobileLabelConfig.maxWidth : 200,
                       pointerEvents: journeyState === 'future' ? 'auto' : 'none',
                       cursor: journeyState === 'future' ? 'pointer' : 'default',
                     }}
