@@ -106,7 +106,10 @@ export function PlatformModal({ platform, stageColor, stepLabel, stageName, onCl
             <p className="text-[14px] tracking-[-0.49px]" style={{ color: stageColor, fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>{stageName}</p>
             <h2 className="text-[20px] md:text-[24px] text-black tracking-[-0.84px] leading-[28px] md:leading-[36px]" style={{ fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>{stepLabel}</h2>
           </div>
-          <button onClick={onClose} className="size-[48px] md:size-[60px] flex items-center justify-center rounded-full hover:bg-[#e8e8e8] transition-colors cursor-pointer shrink-0">
+          <button
+            onClick={onClose}
+            className="size-[48px] md:size-[60px] flex items-center justify-center rounded-full hover:bg-[#e8e8e8] active:bg-[#d9d9d9] active:scale-[0.96] transition-all duration-150 cursor-pointer shrink-0"
+          >
             <svg className="size-[24px]" fill="none" viewBox="0 0 24 24">
               <path d="M19 5L5 19" stroke="#0A0A0A" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.33333" />
               <path d="M5 5L19 19" stroke="#0A0A0A" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.33333" />
