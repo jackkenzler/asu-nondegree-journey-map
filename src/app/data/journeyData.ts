@@ -59,8 +59,8 @@ export const journeyStages: JourneyStage[] = [
       ]
     },
     steps: [
-      { id: 'r1', label: 'Finds non-degree option' },
-      { id: 'r2', label: 'Browses class search' }
+      { id: 'r1', label: 'Consistent policies on landing pages' },
+      { id: 'r2', label: 'Finds a class to enroll in' }
     ],
     painPoints: [],
     platforms: [
@@ -124,9 +124,12 @@ export const journeyStages: JourneyStage[] = [
       ]
     },
     steps: [
-      { id: 'a1', label: 'Navigates branching questions' },
-      { id: 'a2', label: 'Creates account' },
-      { id: 'a3', label: 'Submits application and pays fee' }
+      { id: 'a1', label: 'Signs in to apply' },
+      { id: 'a2', label: 'Starts application' },
+      { id: 'a3', label: 'App started email' },
+      { id: 'a4', label: 'Confirms class' },
+      { id: 'a5', label: 'Submits app and pays fee' },
+      { id: 'a6', label: 'App submitted email' }
     ],
     painPoints: [
       {
@@ -198,9 +201,8 @@ export const journeyStages: JourneyStage[] = [
       ]
     },
     steps: [
-      { id: 'd1', label: 'Awaits system review and propagation' },
-      { id: 'd2', label: 'Receives admit email' },
-      { id: 'd3', label: 'Becomes registration eligible' }
+      { id: 'd1', label: 'Tracks application status' },
+      { id: 'd2', label: 'Admission decision email' }
     ],
     painPoints: [
       {
@@ -271,9 +273,7 @@ export const journeyStages: JourneyStage[] = [
       ]
     },
     steps: [
-      { id: 'reg1', label: 'Navigates to Finances tab' },
-      { id: 'reg2', label: 'Clicks through to register or enroll' },
-      { id: 'reg3', label: 'Checks eligibility' }
+      { id: 'reg1', label: 'Completes enrollment in class' }
     ],
     painPoints: [
       {
@@ -347,7 +347,7 @@ export const journeyStages: JourneyStage[] = [
       ]
     },
     steps: [
-      { id: 't1', label: 'Navigates to Finances tab' },
+      { id: 't1', label: 'Payment reminder email' },
       { id: 't2', label: 'Pays tuition' }
     ],
     painPoints: [],

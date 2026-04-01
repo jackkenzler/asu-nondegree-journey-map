@@ -12,31 +12,34 @@ import { comparisonImages } from '../data/comparisonImages';
 const ROAD_PATH = "M-800 438H254.925C327.274 438 385.925 379.349 385.925 307V143.038C385.925 72.8767 442.801 16 512.962 16C583.123 16 640 72.8767 640 143.038V457.203C640 527.231 696.769 584 766.797 584C836.825 584 893.594 527.231 893.594 457.203V253C893.594 180.651 952.245 122 1024.59 122H2100";
 
 // Current state: 10 pain point markers, distributed across visible path range
-const currentStateMarkers = [
-  { pct: 0.22, label: 'No direct path from\nClass Search to application', side: 'above' as const },
-  { pct: 0.28, label: 'Landing pages with\npolicy contradictions', side: 'below' as const },
-  { pct: 0.35, label: 'Two applications\ncreates confusion', side: 'left' as const },
-  { pct: 0.41, label: 'Non-essential questions\nin the app', side: 'right' as const },
-  { pct: 0.48, label: 'Cannot choose class\nor reserve a seat', side: 'left' as const },
-  { pct: 0.54, label: '"Pay later" option creates\nconfusion and delays', side: 'below' as const },
-  { pct: 0.61, label: 'Unpredictable\nadmission timeline', side: 'right' as const },
-  { pct: 0.67, label: 'Class could fill up\nwhile waiting', side: 'right' as const },
-  { pct: 0.74, label: 'Able to add courses\nnot eligible to enroll in', side: 'above' as const },
-  { pct: 0.80, label: 'Unclear how much\nthe class will cost', side: 'below' as const },
+const currentStateMarkers: CurrentStateMarker[] = [
+  { desktopPct: 0.22, mobilePct: 0.22, label: 'No direct\u00a0path from\nClass\u00a0Search to application', side: 'above' },
+  { desktopPct: 0.27, mobilePct: 0.25, label: 'Landing\u00a0pages with\npolicy\u00a0contradictions', side: 'below' },
+  { desktopPct: 0.35, mobilePct: 0.32, label: 'Two\u00a0applications\ncreates\nconfusion', side: 'left' },
+  { desktopPct: 0.43, mobilePct: 0.46, label: 'Non-essential\u00a0questions\nin\nthe app', side: 'right' },
+  { desktopPct: 0.475, mobilePct: 0.49, label: 'Cannot\u00a0choose\nclass or reserve\na seat', side: 'left' },
+  { desktopPct: 0.52, mobilePct: 0.53, label: '"Pay\u00a0later" option\ncreates confusion\nand delays', side: 'left' },
+  { desktopPct: 0.64, mobilePct: 0.64, label: 'Unpredictable\u00a0admission\ntimeline', side: 'right' },
+  { desktopPct: 0.67, mobilePct: 0.68, label: 'Class\u00a0could\u00a0fill\u00a0up\nwhile\u00a0waiting', side: 'right' },
+  { desktopPct: 0.74, mobilePct: 0.74, label: 'Able\u00a0to\u00a0add\u00a0courses\nnot\u00a0eligible\u00a0to\u00a0enroll\u00a0in', side: 'above' },
+  { desktopPct: 0.80, mobilePct: 0.78, label: 'Unclear\u00a0how\u00a0much\nthe\u00a0class\u00a0will\u00a0cost', side: 'below' },
 ];
 
-// Future state: 9 step dots, distributed across visible path range
-const futureStateMarkers = [
-  { pct: 0.22, label: 'Consistent policies\non landing pages', side: 'above' as const, stageIdx: 0, stepIdx: 0 },
-  { pct: 0.25, label: 'Links from Class Search\nto application', side: 'below' as const, stageIdx: 0, stepIdx: 1 },
-  { pct: 0.34, label: 'Sign in\nto continue', side: 'left' as const, stageIdx: 1, stepIdx: 0 },
-  { pct: 0.46, label: 'Starts a unified\napplication', side: 'left' as const, stageIdx: 1, stepIdx: 1 },
-  { pct: 0.50, label: 'Applies for a class', side: 'right' as const, stageIdx: 1, stepIdx: 2 },
-  { pct: 0.52, label: 'Gets application\nconfirmation email', side: 'left' as const, stageIdx: 2, stepIdx: 0 },
-  { pct: 0.64, label: 'Tracks application\nstatus', side: 'right' as const, stageIdx: 2, stepIdx: 1 },
-  { pct: 0.69, label: 'Sees admission\ndecision', side: 'right' as const, stageIdx: 3, stepIdx: 0 },
-  { pct: 0.73, label: 'Enrolls in\nthe class', side: 'above' as const, stageIdx: 3, stepIdx: 1 },
-  { pct: 0.76, label: 'Pays\u00a0tuition\nclearly', side: 'above' as const, stageIdx: 4, stepIdx: 0 },
+// Future state: 13 step dots, distributed across visible path range
+const futureStateMarkers: FutureStateMarker[] = [
+  { desktopPct: 0.22, mobilePct: 0.22, label: 'Consistent policies\non landing pages', side: 'above', stageIdx: 0, stepIdx: 0 },
+  { desktopPct: 0.255, mobilePct: 0.235, label: 'Finds a class to\nenroll in', side: 'below', stageIdx: 0, stepIdx: 1 },
+  { desktopPct: 0.31, mobilePct: 0.285, label: 'Signs in\nto apply', side: 'left', stageIdx: 1, stepIdx: 0 },
+  { desktopPct: 0.34, mobilePct: 0.315, label: 'Starts\napplication', side: 'left', stageIdx: 1, stepIdx: 1 },
+  { desktopPct: 0.45, mobilePct: 0.35, label: 'App\u00a0started\nemail', side: 'left', stageIdx: 1, stepIdx: 2 },
+  { desktopPct: 0.48, mobilePct: 0.4575, label: 'Confirms\nclass', side: 'left', stageIdx: 1, stepIdx: 3 },
+  { desktopPct: 0.52, mobilePct: 0.49, label: 'Submits app\nand pays fee', side: 'left', stageIdx: 1, stepIdx: 4 },
+  { desktopPct: 0.63, mobilePct: 0.52, label: 'App submitted\nemail', side: 'right', stageIdx: 1, stepIdx: 5 },
+  { desktopPct: 0.655, mobilePct: 0.64, label: 'Tracks application\nstatus', side: 'right', stageIdx: 2, stepIdx: 0 },
+  { desktopPct: 0.68, mobilePct: 0.70, label: 'Admission\u00a0decision\nemail', side: 'left', stageIdx: 2, stepIdx: 1 },
+  { desktopPct: 0.715, mobilePct: 0.73, label: 'Completes\u00a0enrollment\nin class', side: 'above', stageIdx: 3, stepIdx: 0 },
+  { desktopPct: 0.75, mobilePct: 0.76, label: 'Payment\u00a0reminder\nemail', side: 'below', stageIdx: 4, stepIdx: 0 },
+  { desktopPct: 0.79, mobilePct: 0.79, label: 'Pays tuition', side: 'above', stageIdx: 4, stepIdx: 1 },
 ];
 
 const stageColors = ['#78BE20', '#00A3E0', '#FF7F32', '#E74973', '#FFC627'];
@@ -65,7 +68,8 @@ const MOBILE_ROAD_ASPECT_RATIO = 514 / 980;
 
 // Reference width the path was designed for
 const BASE_WIDTH = 1280;
-const SVG_HEIGHT = 620;
+const ORIGINAL_PATH_HEIGHT = 620;
+const DESKTOP_MAP_HEIGHT = 568;
 const VIEWBOX_Y_OFFSET = 10;
 
 type JourneyState = 'current' | 'future';
@@ -84,17 +88,52 @@ interface MobileFutureLabelConfig {
   shiftY?: number;
 }
 
+interface CurrentStateMarker {
+  desktopPct: number;
+  mobilePct: number;
+  label: string;
+  side: LabelSide;
+}
+
+interface MobileCurrentLabelConfig {
+  side: LabelSide;
+}
+
+interface FutureStateMarker {
+  desktopPct: number;
+  mobilePct: number;
+  label: string;
+  side: LabelSide;
+  stageIdx: number;
+  stepIdx: number;
+}
+
 const MOBILE_FUTURE_LABEL_CONFIGS: Record<number, MobileFutureLabelConfig> = {
   0: { side: 'right', distance: 30, maxWidth: 230, shiftY: -6 },
-  1: { side: 'right', distance: 30, maxWidth: 300, shiftY: -6 },
-  2: { side: 'above', distance: 30, maxWidth: 250 },
-  3: { side: 'above', distance: 30, maxWidth: 220, shiftX: 8 },
-  4: { side: 'above', distance: 30, maxWidth: 230, shiftX: 8 },
-  5: { side: 'below', distance: 30, maxWidth: 250, shiftX: -10 },
-  6: { side: 'below', distance: 30, maxWidth: 220, shiftX: 12 },
-  7: { side: 'above', distance: 30, maxWidth: 250, shiftX: -20 },
-  8: { side: 'left', distance: 30, maxWidth: 180, shiftY: -44 },
-  9: { side: 'left', distance: 30, maxWidth: 170, shiftY: -4 },
+  1: { side: 'right', distance: 30, maxWidth: 240, shiftY: 2 },
+  2: { side: 'above', distance: 30, maxWidth: 200 },
+  3: { side: 'above', distance: 30, maxWidth: 200, shiftX: 6 },
+  4: { side: 'above', distance: 30, maxWidth: 220, shiftX: -10 },
+  5: { side: 'above', distance: 30, maxWidth: 180, shiftX: 8 },
+  6: { side: 'above', distance: 30, maxWidth: 220, shiftX: 12 },
+  7: { side: 'above', distance: 30, maxWidth: 180, shiftX: -8 },
+  8: { side: 'above', distance: 30, maxWidth: 220, shiftX: 12 },
+  9: { side: 'above', distance: 30, maxWidth: 320, shiftX: -20 },
+  10: { side: 'left', distance: 30, maxWidth: 320 },
+  11: { side: 'left', distance: 30, maxWidth: 320 },
+  12: { side: 'left', distance: 30, maxWidth: 180 },
+};
+
+const MOBILE_CURRENT_LABEL_CONFIGS: Record<number, MobileCurrentLabelConfig> = {
+  1: { side: 'right' },
+  2: { side: 'above' },
+  3: { side: 'above' },
+  4: { side: 'above' },
+  5: { side: 'above' },
+  6: { side: 'above' },
+  7: { side: 'above' },
+  8: { side: 'left' },
+  9: { side: 'left' },
 };
 
 interface SelectedStep {
@@ -133,7 +172,7 @@ export function JourneyMap() {
   const mobileTrackHeight = MOBILE_ROAD_HEIGHT;
   const mobileMapHeight = mobileTrackHeight + mobilePaddingY * 2;
   const mobileTrackWidth = mobileTrackHeight * MOBILE_ROAD_ASPECT_RATIO;
-  const mobileRoadScaleX = mobileTrackWidth / SVG_HEIGHT;
+  const mobileRoadScaleX = mobileTrackWidth / ORIGINAL_PATH_HEIGHT;
   const mobileRoadScaleY = mobileTrackHeight / BASE_WIDTH;
   const mobileRoadStartX = isMobileLayout ? (containerWidth - mobileTrackWidth) / 2 : 0;
   const labelOffset = isMobileLayout ? 44 : LABEL_OFFSET;
@@ -165,6 +204,15 @@ export function JourneyMap() {
     };
   };
 
+  const getFutureMarkerPct = (marker: FutureStateMarker) =>
+    isMobileLayout ? marker.mobilePct : marker.desktopPct;
+
+  const getCurrentMarkerPct = (marker: CurrentStateMarker) =>
+    isMobileLayout ? marker.mobilePct : marker.desktopPct;
+
+  const getCurrentMobileSide = (index: number, defaultSide: LabelSide) =>
+    isMobileLayout ? (MOBILE_CURRENT_LABEL_CONFIGS[index]?.side ?? getResponsiveSide(defaultSide, index)) : defaultSide;
+
   const getMarkerPosition = (pos: ComputedPoint, index = -1, markerType: 'current' | 'future' = 'future') => {
     if (!isMobileLayout) {
       return {
@@ -176,7 +224,7 @@ export function JourneyMap() {
     const topShift = index === 0 ? (pos.x * mobileRoadScaleY) * 0.25 : 0;
 
     return {
-      x: mobileRoadStartX + (SVG_HEIGHT - (pos.y + VIEWBOX_Y_OFFSET)) * mobileRoadScaleX,
+      x: mobileRoadStartX + (ORIGINAL_PATH_HEIGHT - (pos.y + VIEWBOX_Y_OFFSET)) * mobileRoadScaleX,
       y: baseY - topShift,
     };
   };
@@ -234,14 +282,14 @@ export function JourneyMap() {
 
     setCurrentPositions(
       currentStateMarkers.map(m => {
-        const pt = path.getPointAtLength(totalLength * m.pct);
+        const pt = path.getPointAtLength(totalLength * getCurrentMarkerPct(m));
         return { x: pt.x, y: pt.y };
       })
     );
 
     setFuturePositions(
       futureStateMarkers.map(m => {
-        const pt = path.getPointAtLength(totalLength * m.pct);
+        const pt = path.getPointAtLength(totalLength * getFutureMarkerPct(m));
         return { x: pt.x, y: pt.y };
       })
     );
@@ -382,33 +430,33 @@ export function JourneyMap() {
       </div>
 
       {/* Map + Summary */}
-      <div className="flex flex-col items-center pb-[80px] pt-0 relative z-10">
+      <div
+        className="flex flex-col items-center pb-[80px] pt-0 relative z-10"
+        style={{ marginTop: isMobileLayout ? 0 : -14 }}
+      >
         {/* Map Grid */}
         <div className="w-full max-w-[1200px] px-[24px]">
         <div
           ref={containerRef}
           className="relative w-full transition-[height] duration-300 ease-out"
-          style={{ height: isMobileLayout ? mobileMapHeight : SVG_HEIGHT, marginTop: 0, overflow: 'visible' }}
+          style={{ height: isMobileLayout ? mobileMapHeight : DESKTOP_MAP_HEIGHT, marginTop: 0, overflow: 'visible' }}
         >
           {/* SVG for road only */}
           <svg
             className="absolute inset-0 w-full"
-            viewBox={isMobileLayout ? `0 0 ${containerWidth} ${mobileMapHeight}` : `0 -10 ${containerWidth} ${SVG_HEIGHT}`}
+            viewBox={isMobileLayout ? `0 0 ${containerWidth} ${mobileMapHeight}` : `0 -10 ${containerWidth} ${DESKTOP_MAP_HEIGHT}`}
             preserveAspectRatio="none"
             fill="none"
-            style={{ overflow: 'visible', height: isMobileLayout ? mobileMapHeight : SVG_HEIGHT }}
+            style={{ overflow: 'visible', height: isMobileLayout ? mobileMapHeight : DESKTOP_MAP_HEIGHT }}
           >
             <defs>
-              <linearGradient id="pathGradient" gradientUnits="userSpaceOnUse" x1="-800" x2="2100" y1="300" y2="300">
+              <linearGradient id="pathGradient" gradientUnits="userSpaceOnUse" x1="110" x2="1347" y1="297.5" y2="297.5">
                 <stop stopColor="#78BE20" offset="0" />
-                <stop stopColor="#78BE20" offset="0.19" />
-                <stop stopColor="#00A3E0" offset="0.19" />
-                <stop stopColor="#00A3E0" offset="0.39" />
-                <stop stopColor="#FF7F32" offset="0.39" />
-                <stop stopColor="#FF7F32" offset="0.59" />
-                <stop stopColor="#E74973" offset="0.59" />
-                <stop stopColor="#E74973" offset="0.79" />
-                <stop stopColor="#FFC627" offset="0.79" />
+                <stop stopColor="#00A3E0" offset="0.15" />
+                <stop stopColor="#00A3E0" offset="0.528436" />
+                <stop stopColor="#FF7F32" offset="0.61" />
+                <stop stopColor="#E74973" offset="0.69" />
+                <stop stopColor="#FFC627" offset="0.841505" />
                 <stop stopColor="#FFC627" offset="1" />
               </linearGradient>
             </defs>
@@ -417,7 +465,7 @@ export function JourneyMap() {
             {isMobileLayout ? (
               <g transform={`translate(${mobileRoadStartX}, ${mobilePaddingY})`}>
                 <g transform={`scale(${mobileRoadScaleX}, ${mobileRoadScaleY})`}>
-                  <g transform={`matrix(0 1 -1 0 ${SVG_HEIGHT} 0)`}>
+                  <g transform={`matrix(0 1 -1 0 ${ORIGINAL_PATH_HEIGHT} 0)`}>
                     <path
                       ref={roadRef}
                       d={ROAD_PATH}
@@ -475,11 +523,8 @@ export function JourneyMap() {
           {currentPositions.map((pos, i) => {
             const marker = currentStateMarkers[i];
             const { x: pixelX, y: pixelY } = getMarkerPosition(pos, i, 'current');
-            const side = getResponsiveSide(marker.side, i);
+            const side = getCurrentMobileSide(i, marker.side);
             const labelStyle = getLabelStyle(pixelX, pixelY, side);
-            const textAlign: React.CSSProperties['textAlign'] =
-              side === 'left' ? 'right' : side === 'right' ? 'left' : 'center';
-
             return (
               <div
                 key={`pp-${i}`}
@@ -511,11 +556,11 @@ export function JourneyMap() {
                     style={{
                       display: 'inline-block',
                       minWidth: isMobileLayout ? 0 : 150,
-                      maxWidth: isMobileLayout ? Math.min(220, containerWidth * 0.42) : 180,
+                      maxWidth: isMobileLayout ? Math.min(280, containerWidth * 0.66) : 180,
                       fontFamily: 'Arial, sans-serif',
                       fontSize: 16,
                       color: '#191919',
-                      textAlign,
+                      textAlign: 'center',
                       lineHeight: 1.35,
                       padding: isMobileLayout ? '12px' : '12px 10px',
                       whiteSpace: 'pre-line',
@@ -536,7 +581,8 @@ export function JourneyMap() {
             const isCirclePressed = pressedDotCircle === i;
             const isLabelPressed = pressedDotLabel === i;
             const { x: pixelX, y: pixelY } = getMarkerPosition(pos, i, 'future');
-            const isFirstDot = i === 0;
+            const guidedTourDotIndex = isMobileLayout ? 0 : 1;
+            const isGuidedTourDot = i === guidedTourDotIndex;
             const showActiveFutureStyle = isMobileLayout || isHovered;
 
             const mobileLabelConfig = getFutureMobileLabelConfig(i, marker.side);
@@ -560,7 +606,7 @@ export function JourneyMap() {
                 }}
               >
                 {/* Pulse ring on first dot while popover is visible */}
-                {isFirstDot && showPopover && journeyState === 'future' && (
+                {isGuidedTourDot && showPopover && journeyState === 'future' && (
                   <div
                     className="absolute pointer-events-none"
                     style={{
@@ -597,7 +643,7 @@ export function JourneyMap() {
                   onMouseUp={() => setPressedDotCircle(null)}
                 />
                 {/* Dot / Icon */}
-                {i === 5 ? (
+                {[4, 7, 9, 11].includes(i) ? (
                   <img
                     src={emailIcon}
                     alt="Email"
@@ -640,7 +686,7 @@ export function JourneyMap() {
                       fontFamily: 'Arial, sans-serif',
                       fontSize: 16,
                       color: '#191919',
-                      textAlign: side === 'left' ? 'right' : side === 'right' ? 'left' : 'center',
+                      textAlign: 'center',
                       lineHeight: 1.35,
                       padding: isMobileLayout ? '12px' : '12px 10px',
                       borderRadius: 6,
@@ -674,13 +720,13 @@ export function JourneyMap() {
             );
           })}
 
-          {/* Guided Tour Popover — only in Future state, anchored to first future dot */}
+          {/* Guided Tour Popover — only in Future state, anchored to the guided-tour dot */}
           {futurePositions.length > 0 && journeyState === 'future' && (
             <GuidedTourPopover
               visible={showPopover}
               onDismiss={() => setShowPopover(false)}
-              anchorX={getMarkerPosition(futurePositions[0], 0, 'future').x}
-              anchorY={getMarkerPosition(futurePositions[0], 0, 'future').y}
+              anchorX={getMarkerPosition(futurePositions[isMobileLayout ? 0 : 1], isMobileLayout ? 0 : 1, 'future').x}
+              anchorY={getMarkerPosition(futurePositions[isMobileLayout ? 0 : 1], isMobileLayout ? 0 : 1, 'future').y}
               placement={isMobileLayout ? 'below' : 'above'}
               compact={isMobileLayout}
             />
