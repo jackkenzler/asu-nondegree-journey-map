@@ -17,7 +17,7 @@ const currentStateMarkers: CurrentStateMarker[] = [
   { desktopPct: 0.27, mobilePct: 0.25, label: 'Landing\u00a0pages with\npolicy\u00a0contradictions', side: 'below' },
   { desktopPct: 0.35, mobilePct: 0.32, label: 'Two\u00a0applications\ncreates\nconfusion', side: 'left' },
   { desktopPct: 0.43, mobilePct: 0.46, label: 'Non-essential\u00a0questions\nin\nthe app', side: 'right' },
-  { desktopPct: 0.475, mobilePct: 0.49, label: 'Cannot\u00a0choose\nclass or reserve\na seat', side: 'left' },
+  { desktopPct: 0.475, mobilePct: 0.49, label: 'Cannot\u00a0reserve a seat\nbefore\u00a0registering', side: 'left' },
   { desktopPct: 0.52, mobilePct: 0.53, label: '"Pay\u00a0later" option\ncreates confusion\nand delays', side: 'left' },
   { desktopPct: 0.64, mobilePct: 0.64, label: 'Unpredictable\u00a0admission\ntimeline', side: 'right' },
   { desktopPct: 0.67, mobilePct: 0.68, label: 'Class\u00a0could\u00a0fill\u00a0up\nwhile\u00a0waiting', side: 'right' },
@@ -348,7 +348,7 @@ export function JourneyMap() {
   const selectedPlatform = selectedStage?.platforms[0] || null;
 
   return (
-    <div className="bg-[#F2F1EF] min-h-screen flex flex-col overflow-x-hidden" style={{ fontFamily: 'Arial, sans-serif' }}>
+    <div className="bg-[#FAFAFA] min-h-screen flex flex-col overflow-x-hidden" style={{ fontFamily: 'Arial, sans-serif' }}>
       {/* Header */}
       <div className="bg-white border-b border-[#e8e8e8] shrink-0 relative z-30">
         <div className="flex items-center justify-between gap-[16px] px-[12px] py-[12px] md:px-[40px] md:py-[24px] lg:px-[85px]">
@@ -748,12 +748,14 @@ export function JourneyMap() {
           <div className="bg-white/80 backdrop-blur-[25px] rounded-[12px] border border-black/10 shadow-[0px_10px_22px_0px_rgba(0,0,0,0.05),0px_40px_40px_0px_rgba(0,0,0,0.04)]">
             <div className={`grid p-[24px] md:p-[32px] ${isMobileLayout ? 'grid-cols-1' : 'grid-cols-5'}`} style={{ gap: summaryGap }}>
               {summaryData.map((stage) => (
-                <div key={stage.num} className="flex-1 flex flex-col gap-[8px]">
-                  <p className="text-[40px] tracking-[-1.4px] leading-none" style={{ color: stage.color, fontWeight: 'bold' }}>{stage.num}</p>
-                  <p className="text-[24px] text-black tracking-[-0.84px] leading-[1.1]" style={{ fontWeight: 'bold' }}>{stage.name}</p>
+                <div key={stage.num} className="flex-1 flex flex-col gap-[16px]">
+                  <div className="flex flex-col gap-[4px]">
+                    <p className="text-[40px] tracking-[-1.4px] leading-none" style={{ color: stage.color, fontWeight: 'bold' }}>{stage.num}</p>
+                    <p className="text-[24px] text-black tracking-[-0.84px] leading-[1.1]" style={{ fontWeight: 'bold' }}>{stage.name}</p>
+                  </div>
                   <div className="relative">
                     <div className="absolute left-0 top-0 bottom-0 w-[3px] rounded-full" style={{ backgroundColor: stage.color }} />
-                    <p className="pl-[12px] text-[14px] text-[#191919] opacity-60 leading-[1.4]">{stage.desc}</p>
+                    <p className="pl-[16px] text-[16px] text-[#191919] opacity-60 leading-[1.4]">{stage.desc}</p>
                   </div>
                 </div>
               ))}
